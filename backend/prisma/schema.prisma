@@ -12,9 +12,60 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  ADMIN
+  ASSET_MANAGER
+  DEPARTMENT_HEAD
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum DepartmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Department {
+  id          Int      @id @default(autoincrement())
+
+  name        String   @unique
+  description String?
+
+  status      DepartmentStatus @default(ACTIVE)
+
+  parentId    Int?
+  parent      Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children    Department[] @relation("DepartmentHierarchy")
+
+  headId      Int?     @unique
+  head        User?    @relation("DepartmentHead", fields: [headId], references: [id])
+
+  employees   User[]   @relation("DepartmentEmployees")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
+
+  id           Int      @id @default(autoincrement())
+
+  name         String
+  email        String   @unique
+  password     String
+
+  role         Role     @default(EMPLOYEE)
+  status       UserStatus @default(ACTIVE)
+
+  departmentId Int?
+  department   Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id])
+
+  headedDepartment Department? @relation("DepartmentHead")
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
