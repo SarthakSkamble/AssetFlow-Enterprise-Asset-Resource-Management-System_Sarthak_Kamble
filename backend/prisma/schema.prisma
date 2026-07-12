@@ -28,6 +28,29 @@ enum DepartmentStatus {
   ACTIVE
   INACTIVE
 }
+enum AssetStatus {
+  AVAILABLE
+  ALLOCATED
+  RESERVED
+  UNDER_MAINTENANCE
+  LOST
+  RETIRED
+  DISPOSED
+}
+
+enum AssetCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  DAMAGED
+  BROKEN
+}
+
+enum AllocationStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+}
 
 model Department {
   id          Int      @id @default(autoincrement())
@@ -68,4 +91,81 @@ model User {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  allocations        Allocation[]
+
+}
+
+
+model Category {
+
+  id          Int      @id @default(autoincrement())
+
+  name        String   @unique
+
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assets       Asset[]
+
+}
+model Asset {
+
+  id                 Int              @id @default(autoincrement())
+
+  assetTag           String           @unique
+
+  name               String
+
+  serialNumber       String           @unique
+
+  categoryId         Int
+  category           Category         @relation(fields: [categoryId], references: [id])
+
+  acquisitionDate    DateTime
+
+  acquisitionCost    Float?
+
+  location           String
+
+  condition          AssetCondition   @default(GOOD)
+
+  status             AssetStatus      @default(AVAILABLE)
+
+  isShared           Boolean          @default(false)
+
+  createdAt          DateTime         @default(now())
+
+  updatedAt          DateTime         @updatedAt
+
+  allocations        Allocation[]
+
+}
+
+model Allocation {
+
+  id                   Int               @id @default(autoincrement())
+
+  assetId              Int
+  asset                Asset             @relation(fields: [assetId], references: [id])
+
+  employeeId           Int
+  employee             User              @relation(fields: [employeeId], references: [id])
+
+  allocatedDate        DateTime          @default(now())
+
+  expectedReturnDate   DateTime?
+
+  returnedDate         DateTime?
+
+  returnCondition      AssetCondition?
+
+  remarks              String?
+
+  status               AllocationStatus  @default(ACTIVE)
+
+  createdAt            DateTime          @default(now())
+
+  updatedAt            DateTime          @updatedAt
 }
